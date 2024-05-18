@@ -1,10 +1,20 @@
 import feedparser
 from openai import OpenAI
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import os
 
 app = FastAPI()
+
+# 配置CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # 创建 OpenAI 客户端
 client = OpenAI(
