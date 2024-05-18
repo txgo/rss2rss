@@ -16,9 +16,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# 创建 OpenAI 客户端
+# 创建 OpenAI 客户端，并从环境变量中获取 API 密钥
+api_key = os.getenv("OPENAI_API_KEY")
+if not api_key:
+    raise ValueError("The OPENAI_API_KEY environment variable is not set.")
+
 client = OpenAI(
-    api_key=os.getenv("OPENAI_API_KEY")
+    api_key=api_key
 )
 
 class RSSRequest(BaseModel):
