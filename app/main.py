@@ -1,12 +1,13 @@
 import feedparser
-from transformers import pipeline
+import openai
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
+import os
 
 app = FastAPI()
 
-classifier = pipeline('text-classification')
-summarizer = pipeline('summarization')
+# 从环境变量中获取OpenAI API Key
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 class RSSRequest(BaseModel):
     url: str
@@ -29,12 +30,19 @@ def process_rss(url: str):
     processed_entries = []
 
     for entry in entries:
-        labels = classifier(entry.summary)
-        if 'desired_label' in labels:
-            summary = summarizer(entry.summary, max_length=150, min_length=50, do_sample=False)
-            processed_entries.append({
-                'title': entry.title,
-                'summary': summary[0]['summary_text']
-            })
+        summary = summarize_text(entry.summary)
+        processed_entries.append({
+            'title': entry.title,
+            'summary': summary
+        })
 
     return processed_entries
+
+def summarize_text(text: str) -> str:
+    response = openai.Completion.create(
+        engine="text-davinci-003",
+        prompt=f"Summarize the following text: {text}",
+        max_tokens=150
+    )
+    summary = response.choices[0].text.strip()
+    return summary
